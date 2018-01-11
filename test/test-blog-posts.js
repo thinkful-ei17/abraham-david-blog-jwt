@@ -208,7 +208,7 @@ describe('blog posts API resource', function () {
                     res.should.have.status(201);
                     res.should.be.json;
                     res.body.should.be.a('object');
-                    res.body.should.include.keys(
+                    res.body.should.include.keys( 
                         'id', 'title', 'content', 'author', 'created');
                     res.body.title.should.equal(newPost.title);
                     // cause Mongo should have created id on insertion
