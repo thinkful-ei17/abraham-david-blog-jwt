@@ -59,7 +59,7 @@ function seedUserData(){
     console.info('seeding user data');
     UserModel.hashPassword('baseball')
         .then(pw => {
-            return UserModel.create({username: 'bt', password: pw, firstName: 'Bobby', lastname: 'Tables'});
+            return UserModel.create({username: 'bt', password: pw, firstName: 'Bobby!', lastname: 'Tables'});
         });
 }
 
@@ -81,7 +81,7 @@ describe('blog posts API resource', function () {
         return closeServer();
     });
 
-    describe('POST user endpoint', function(){
+    describe('POST api/users endpoint', function(){
         it('should create a new user for authentication', function(){
             const newUser = {username: 'eve', password: 'football', firstName: 'Bobby', lastname: 'Tables'};
             return chai.request(app)
@@ -98,23 +98,19 @@ describe('blog posts API resource', function () {
                 });
         });
 
-
     });
 
     describe('POST api/protected endpoint', function(){
         it('should authenticate and show user', function(){
-            const newUser = {username: 'eve', password: 'football'};
+            const newUser = {username: 'bt', password: 'baseball'};
             return chai.request(app)
                 .post('/api/protected')
                 .send(newUser)
                 .then(res =>{
-                    res.should.have.status(201);
+                    res.should.have.status(200);
                     res.should.be.json;
                     res.body.should.include.keys('username', 'firstName', 'lastName');
                     res.body.username.should.equal(newUser.username);
-                })
-                .catch(err =>{
-                    console.error(err);
                 });
         });
 
@@ -192,7 +188,7 @@ describe('blog posts API resource', function () {
 
             return chai.request(app)
                 .post('/posts')
-                .auth('username', 'password')
+                // .auth('username', 'password')
                 .send(newPost)
                 .then(function (res) {
                     res.should.have.status(201);
@@ -220,7 +216,6 @@ describe('blog posts API resource', function () {
     describe('PUT endpoint', function () {
 
         it('should update fields you send over when authenticated', function () {
-            const newUser = {username: 'eve', password: 'football', firstName: 'Bobby', lastname: 'Tables'};
             const updateData = {
                 username: 'bt',
                 password: 'baseball',
@@ -239,7 +234,6 @@ describe('blog posts API resource', function () {
 
                     return chai.request(app)
                         .put(`/posts/${post.id}`)
-                        .auth(newUser.password, newUser.username)
                         .send(updateData);
                 })
                 .then(res => {
@@ -267,7 +261,6 @@ describe('blog posts API resource', function () {
                     post = _post;
                     return chai.request(app)
                         .delete(`/posts/${post.id}`)
-                        .auth('username', 'password')
                         .send({ username: 'bt', password: 'baseball'});
                 })
                 .then(res => {
@@ -283,4 +276,5 @@ describe('blog posts API resource', function () {
                 });
         });
     });
+
 });
