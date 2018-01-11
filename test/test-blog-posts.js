@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 // this module
 const should = chai.should();
 
-const { BlogPost } = require('../models');
+const { BlogPost, UserModel } = require('../models');
 const { closeServer, runServer, app } = require('../server');
 const { TEST_DATABASE_URL } = require('../config');
 
@@ -47,10 +47,21 @@ function seedBlogPostData() {
       content: faker.lorem.text()
     });
   }
+
   // this will return a promise
-  return BlogPost.insertMany(seedData);
+  return BlogPost.insertMany(seedData).then(()=>{
+    return seedUserData();
+  });
+
 }
 
+function seedUserData(){
+  console.info('seeding user data');
+  UserModel.hashPassword('baseball')
+  .then(pw => {
+    return UserModel.create({username: 'bt', password: pw, firstName: 'Bobby', lastname: 'Tables'});
+  });
+}
 
 describe('blog posts API resource', function () {
 
@@ -72,6 +83,27 @@ describe('blog posts API resource', function () {
     return closeServer();
   });
 
+  describe('POST user endpoint', function(){
+    it('should create a new user', function(){
+      const newUser = {username: 'eve', password: 'football', firstName: 'Bobby', lastname: 'Tables'};
+      return chai.request(app)
+    .post('/api/users')
+    .send(newUser)
+    .then(res =>{
+      res.should.have.status(201);
+      res.should.be.json;
+      res.body.should.include.keys('username', 'firstName', 'lastName');
+      res.body.username.should.equal(newUser.username);
+    })
+    .catch(err =>{
+      console.error(err);
+    });
+    });
+
+
+  });
+
+  
   // note the use of nested `describe` blocks.
   // this allows us to make clearer, more discrete tests that focus
   // on proving something small
