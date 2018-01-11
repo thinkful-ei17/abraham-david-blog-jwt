@@ -74,8 +74,6 @@ describe('blog posts API resource', function () {
     });
 
     afterEach(function () {
-    // tear down database so we ensure no state from this test
-    // effects any coming after.
         return tearDownDb();
     });
 
@@ -84,7 +82,7 @@ describe('blog posts API resource', function () {
     });
 
     describe('POST user endpoint', function(){
-        it('should create a new user', function(){
+        it('should create a new user for authentication', function(){
             const newUser = {username: 'eve', password: 'football', firstName: 'Bobby', lastname: 'Tables'};
             return chai.request(app)
                 .post('/api/users')
@@ -122,11 +120,9 @@ describe('blog posts API resource', function () {
 
 
     });
-    // note the use of nested `describe` blocks.
-    // this allows us to make clearer, more discrete tests that focus
-    // on proving something small
+
     describe('GET endpoint', function () {
-        const newUser = {username: 'eve', password: 'football'};
+
         it('should return all existing posts', function () {
             // strategy:
             //    1. get back all posts returned by by GET request to `/posts`
@@ -136,7 +132,6 @@ describe('blog posts API resource', function () {
             let res;
             return chai.request(app)
                 .get('/posts')
-                .auth(newUser.username, newUser.password )
                 .then(_res => {
                     res = _res;
                     res.should.have.status(200);
@@ -158,9 +153,7 @@ describe('blog posts API resource', function () {
             let resPost;
             return chai.request(app)
                 .get('/posts')
-                .auth(newUser.username, newUser.password )
                 .then(function (res) {
-                    console.log(res);
                     res.should.have.status(200);
                     res.should.be.json;
                     res.body.should.be.a('array');
@@ -184,10 +177,7 @@ describe('blog posts API resource', function () {
     });
 
     describe('POST endpoint', function () {
-    // strategy: make a POST request with data,
-    // then prove that the post we get back has
-    // right keys, and that `id` is there (which means
-    // the data was inserted into db)
+
         it('should add a new blog post when authenticated', function () {
             const newPost = {
                 username: 'bt',
@@ -208,7 +198,7 @@ describe('blog posts API resource', function () {
                     res.should.have.status(201);
                     res.should.be.json;
                     res.body.should.be.a('object');
-                    res.body.should.include.keys( 
+                    res.body.should.include.keys(
                         'id', 'title', 'content', 'author', 'created');
                     res.body.title.should.equal(newPost.title);
                     // cause Mongo should have created id on insertion
@@ -229,10 +219,6 @@ describe('blog posts API resource', function () {
 
     describe('PUT endpoint', function () {
 
-    // strategy:
-    //  1. Get an existing post from db
-    //  2. Make a PUT request to update that post
-    //  4. Prove post in db is correctly updated
         it('should update fields you send over when authenticated', function () {
             const newUser = {username: 'eve', password: 'football', firstName: 'Bobby', lastname: 'Tables'};
             const updateData = {
@@ -270,15 +256,10 @@ describe('blog posts API resource', function () {
     });
 
     describe('DELETE endpoint', function () {
-    // strategy:
-    //  1. get a post
-    //  2. make a DELETE request for that post's id
-    //  3. assert that response has right status code
-    //  4. prove that post with the id doesn't exist in db anymore
+
         it('should delete a post by id when authenticated', function () {
 
             let post;
-            const newUser = {username: 'bt', password: 'baseba', firstName: 'Bobby', lastname: 'Tables'};
 
             return BlogPost
                 .findOne()
