@@ -19,6 +19,8 @@ app.use(bodyParser.json());
 
 // Define localStrategy
 const localStrategy = new LocalStrategy((username, password, done)=>{
+  let givenUser;
+
   UserModel.findOne({username})
   .then(user=>{
     if(!user){
@@ -28,13 +30,22 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
         location: 'username'
       });
     }
-
+    givenUser = user;
     /*
     1. Return Error if user is wrong
     2. Return error if pass is wrong
     3. return uer if goo
     */
-    const isValid = user.validatePassword(password);
+    return user.validatePassword(password);
+
+  })
+  .then((isValid) => {
+    console.log("Username: " + username);
+    console.log("Password: " + password);
+    console.log(isValid);
+
+    //if isValid is false; then run this if statement
+    //to do that !isValid aka !false because if statements need a true to run.
     if(!isValid){
       console.log('I ran! So far away!');
       return Promise.reject({
@@ -43,7 +54,7 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
         location: 'password'
       });
     }
-      return done(null, user);
+      return done(null, givenUser);
   })
   .catch(err => {
     if(err.reason === 'LoginError'){
@@ -59,11 +70,11 @@ const localAuth = passport.authenticate('local',{session: false});
 
 
 
-app.post('/api/users', (req, res)=>{
+app.post('/api/users', (req, res)=> {
 // Do stuff here
 let {username, password, firstName, lastName} = req.body;
 
-return UserModel 
+return UserModel
 .find({username})
 .count()
 .then(count =>{
@@ -75,7 +86,11 @@ return UserModel
       location: 'username'
     });
   }
-  return UserModel.create({username, password, firstName, lastName});
+
+  return UserModel.hashPassword(password);
+})
+.then((hashedPassword) => {
+  return UserModel.create({username, password: hashedPassword, firstName, lastName});
 })
 .then(user => {
   return res.status(201).json(user.serialize());
@@ -84,7 +99,7 @@ return UserModel
   if(err.reason === 'ValidationError'){
     return res.status(err.code).json(err);
   }
-  res.status(500).json({code: 500, message: 'Internal server error'});
+  res.status(500).json({code: 500, message: err.message});
 });
 });
 
