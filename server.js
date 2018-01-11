@@ -6,13 +6,91 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
+const passport = require('passport');
+const {Strategy: LocalStrategy} = require('passport-local');
 const { DATABASE_URL, PORT } = require('./config');
-const { BlogPost } = require('./models');
+const { BlogPost, UserModel} = require('./models');
 
 const app = express();
 
 app.use(morgan('common'));
 app.use(bodyParser.json());
+
+
+// Define localStrategy
+const localStrategy = new LocalStrategy((username, password, done)=>{
+  UserModel.findOne({username})
+  .then(user=>{
+    if(!user){
+      return Promise.reject({
+        reason: 'LoginError',
+        message:'Incorrect username',
+        location: 'username'
+      });
+    }
+
+    /*
+    1. Return Error if user is wrong
+    2. Return error if pass is wrong
+    3. return uer if goo
+    */
+    const isValid = user.validatePassword(password);
+    if(!isValid){
+      console.log('I ran! So far away!');
+      return Promise.reject({
+        reason: 'LoginError',
+        message: 'Incorrect password',
+        location: 'password'
+      });
+    }
+      return done(null, user);
+  })
+  .catch(err => {
+    if(err.reason === 'LoginError'){
+      return done(null, false);
+    }
+    return done(err);
+  });
+
+});
+
+passport.use(localStrategy);
+const localAuth = passport.authenticate('local',{session: false});
+
+
+
+app.post('/api/users', (req, res)=>{
+// Do stuff here
+let {username, password, firstName, lastName} = req.body;
+
+return UserModel 
+.find({username})
+.count()
+.then(count =>{
+  if(count > 0){
+    return Promise.reject({
+      code: 422,
+      reason: 'ValidationError',
+      message: 'Username already taken',
+      location: 'username'
+    });
+  }
+  return UserModel.create({username, password, firstName, lastName});
+})
+.then(user => {
+  return res.status(201).json(user.serialize());
+})
+.catch(err => {
+  if(err.reason === 'ValidationError'){
+    return res.status(err.code).json(err);
+  }
+  res.status(500).json({code: 500, message: 'Internal server error'});
+});
+});
+
+app.post('/api/protected', localAuth, function(req, res){
+  res.json(req.user.serialize());
+});
 
 
 app.get('/posts', (req, res) => {
