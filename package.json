@@ -11,10 +11,12 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.2",
     "express": "^4.12.4",
+    "jsonwebtoken": "^8.1.0",
     "mongoose": "^4.7.1",
     "morgan": "^1.7.0",
     "passport": "^0.4.0",
     "passport-http": "^0.3.0",
+    "passport-jwt": "^3.0.1",
     "passport-local": "^1.0.0"
   },
   "keywords": [
