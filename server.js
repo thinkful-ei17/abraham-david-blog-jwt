@@ -4,10 +4,12 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 mongoose.Promise = global.Promise;
 
 const passport = require('passport');
 const {Strategy: LocalStrategy} = require('passport-local');
+const {Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const { DATABASE_URL, PORT } = require('./config');
 const { BlogPost, UserModel} = require('./models');
 
@@ -15,6 +17,7 @@ const app = express();
 
 app.use(morgan('common'));
 app.use(bodyParser.json());
+
 
 
 // Define localStrategy
@@ -66,9 +69,23 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
 
 });
 
+
+
+const createAuthToken = user =>{
+    return jwt.sign({user}, process.env.JWT_SECRET, {
+      sub: user.username,
+      expiry: '7d',
+      algorithm: 'HS256'
+  });
+};
+
 passport.use(localStrategy);
 const localAuth = passport.authenticate('local',{session: false});
 
+app.post('/api/login', localAuth, (req, res)=>{
+  const token = createAuthToken(req.user.serialize());
+  res.json({token});
+});
 
 
 app.post('/api/users', (req, res)=> {
