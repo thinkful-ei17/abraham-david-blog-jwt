@@ -23,7 +23,7 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
 
     UserModel.findOne({username})
         .then(user=>{
-            console.log('Answer me!!!! : ' + username);
+            console.log('Answer me!!!! : ' + user);
             if(!user){
                 return Promise.reject({
                     reason: 'LoginError',
@@ -72,7 +72,7 @@ const localAuth = passport.authenticate('local',{session: false});
 
 
 app.post('/api/users', (req, res)=> {
-// Do stuff here
+
     let {username, password, firstName, lastName} = req.body;
 
     return UserModel
