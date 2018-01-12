@@ -23,6 +23,7 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
 
     UserModel.findOne({username})
         .then(user=>{
+            console.log('Answer me!!!! : ' + username);
             if(!user){
                 return Promise.reject({
                     reason: 'LoginError',
@@ -42,7 +43,7 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
         .then((isValid) => {
             console.log('Username: ' + username);
             console.log('Password: ' + password);
-            console.log(isValid);
+            console.log('Answer me: ' + isValid);
 
             //if isValid is false; then run this if statement
             //to do that !isValid aka !false because if statements need a true to run.
@@ -57,10 +58,10 @@ const localStrategy = new LocalStrategy((username, password, done)=>{
             return done(null, givenUser);
         })
         .catch(err => {
-            if(err.reason === 'LoginError'){
-                return done(null, false);
-            }
-            return done(err);
+            // if(err.reason === 'LoginError'){
+            //     return done(null, false);
+            // }
+            return done(err.message, false);
         });
 
 });
@@ -104,6 +105,7 @@ app.post('/api/users', (req, res)=> {
 });
 
 app.post('/api/protected', localAuth, function(req, res){
+    console.log('Got here!');
     res.json(req.user.serialize());
 });
 
@@ -149,6 +151,7 @@ app.post('/posts', localAuth, (req, res) => {
         })
         .then(blogPost => res.status(201).json(blogPost.serialize()))
         .catch(err => {
+            console.log('woops?');
             console.error(err);
             res.status(500).json({ error: 'Something went wrong' });
         });
@@ -208,7 +211,7 @@ function runServer(databaseUrl = DATABASE_URL, port = PORT) {
             if (err) {
                 return reject(err);
             }
-            server = app.listen(port, () => {
+            server = app.listen( () => {
                 console.log(`Your app is listening on port ${port}`);
                 resolve();
             })

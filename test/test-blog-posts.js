@@ -264,6 +264,10 @@ describe('blog posts API resource', function () {
                         .send({ username: 'bt', password: 'baseball'});
                 })
                 .then(res => {
+                    console.log('1----------------');
+                    console.log(JSON.stringify(res, null, 4));
+                    console.log('2----------------');
+
                     res.should.have.status(204);
                     return BlogPost.findById(post.id);
                 })
@@ -273,6 +277,13 @@ describe('blog posts API resource', function () {
                     // an error. `should.be.null(_post)` is how we can
                     // make assertions about a null value.
                     should.not.exist(_post);
+                })
+                .catch( res => {
+                    console.log('1----------------');
+                    console.log(JSON.stringify(res.response.text, null, 4));
+                    console.log('2----------------');
+                    // i want it to fail; so i put 200 instead of 500
+                    res.should.have.status(200);
                 });
         });
     });

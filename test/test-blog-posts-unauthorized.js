@@ -84,7 +84,7 @@ describe('blog posts API resource', function () {
             //    3. prove the number of posts we got back is equal to number
             //       in db.
             let res;
-            return chai.request(app)
+            return chai.request(app) 
                 .get('/posts')
                 .then(_res => {
                     res = _res;
